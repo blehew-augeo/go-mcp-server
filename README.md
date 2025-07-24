@@ -6,25 +6,42 @@ A Model Context Protocol (MCP) server for executing SQL queries against Microsof
 
 1. Download the latest `mcp-server.exe` from the [releases page](https://github.com/blehew-augeo/go-mcp-server/releases/latest)
 
-2. Create a directory and move the executable:
-   ```powershell
-   New-Item -ItemType Directory -Force -Path "$env:LOCALAPPDATA\Programs\mcp-server"
-   Move-Item "mcp-server.exe" "$env:LOCALAPPDATA\Programs\mcp-server\mcp-server.exe"
-   ```
+2. **Option A: Simple (no PATH setup)**
+   - Place `mcp-server.exe` anywhere you like (e.g., `C:\tools\mcp-server.exe`)
 
-3. Add to your PATH (optional, but recommended):
-   ```powershell
-   $currentPath = [Environment]::GetEnvironmentVariable("PATH", "User")
-   $newPath = "$currentPath;$env:LOCALAPPDATA\Programs\mcp-server"
-   [Environment]::SetEnvironmentVariable("PATH", $newPath, "User")
-   ```
-
-4. Restart your terminal for PATH changes to take effect.
+3. **Option B: Add to PATH (recommended)**
+   - Create a directory and move the executable:
+     ```powershell
+     New-Item -ItemType Directory -Force -Path "$env:LOCALAPPDATA\Programs\mcp-server"
+     Move-Item "mcp-server.exe" "$env:LOCALAPPDATA\Programs\mcp-server\mcp-server.exe"
+     ```
+   - Add to your PATH:
+     ```powershell
+     $currentPath = [Environment]::GetEnvironmentVariable("PATH", "User")
+     $newPath = "$currentPath;$env:LOCALAPPDATA\Programs\mcp-server"
+     [Environment]::SetEnvironmentVariable("PATH", $newPath, "User")
+     ```
+   - Restart your terminal
 
 ## Configuration
 
 Add to your Cursor MCP configuration at `C:\Users\<username>\.cursor\mcp.json`:
 
+**If you chose Option A (no PATH):**
+```json
+{
+  "mcpServers": {
+    "go-mcp-server": {
+      "command": "C:\\path\\to\\your\\mcp-server.exe",
+      "env": {
+        "MSSQL_CONNECTION_STRING": "your-connection-string-here"
+      }
+    }
+  }
+}
+```
+
+**If you chose Option B (added to PATH):**
 ```json
 {
   "mcpServers": {
