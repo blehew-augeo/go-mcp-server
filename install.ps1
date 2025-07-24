@@ -1,5 +1,5 @@
 param(
-    [string]$GitHubRepo = "",  
+    [string]$GitHubRepo = "blehew-augeo/go-mcp-server",  
     [string]$BinaryName = "mcp-server.exe"
 )
 
@@ -11,9 +11,9 @@ Write-Host "===================="
 Write-Host "Installing to: $InstallDir"
 Write-Host ""
 
-# Auto-detect repo if not specified
-if ([string]::IsNullOrEmpty($GitHubRepo)) {
-    # Try to detect from git remote
+# Auto-detect repo if not specified or use default
+if ($GitHubRepo -eq "blehew-augeo/go-mcp-server") {
+    # Try to detect from git remote first
     try {
         $remoteUrl = & git config --get remote.origin.url 2>$null
         if ($remoteUrl) {
@@ -21,21 +21,15 @@ if ([string]::IsNullOrEmpty($GitHubRepo)) {
             if ($remoteUrl -match "github.com[:/]([^/]+)/([^/\.]+)") {
                 $owner = $Matches[1]
                 $repo = $Matches[2] -replace '\.git$', ''
-                $GitHubRepo = "$owner/$repo"
-                Write-Host "Detected repository: $GitHubRepo" -ForegroundColor Cyan
+                $detectedRepo = "$owner/$repo"
+                if ($detectedRepo -ne $GitHubRepo) {
+                    $GitHubRepo = $detectedRepo
+                    Write-Host "Detected repository: $GitHubRepo" -ForegroundColor Cyan
+                }
             }
         }
     } catch {
-        # Silently fail if git detection doesn't work
-    }
-    
-    # If still empty, prompt the user
-    if ([string]::IsNullOrEmpty($GitHubRepo)) {
-        $GitHubRepo = Read-Host "Could not auto-detect repository. Please enter the GitHub repository (e.g., 'owner/repo')"
-        if ([string]::IsNullOrEmpty($GitHubRepo)) {
-            Write-Error "Repository information is required. Please try again with -GitHubRepo parameter."
-            exit 1
-        }
+        # Silently fail if git detection doesn't work, use default
     }
 }
 
