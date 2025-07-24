@@ -1,8 +1,18 @@
-Setup:
-   - open Powershell
-   - run install script
-   - create/edit mcp.json at C:\Users\<username>\.cursor\mcp.json
-   - add the mcp server to the configuration:
+# go-mcp-server
+
+A Model Context Protocol (MCP) server for executing SQL queries against Microsoft SQL Server databases.
+
+## Installation
+
+```powershell
+iex (iwr -useb https://raw.githubusercontent.com/blehew-augeo/go-mcp-server/main/install.ps1).Content
+```
+
+## Configuration
+
+Add to your Cursor MCP configuration at `C:\Users\<username>\.cursor\mcp.json`:
+
+```json
 {
   "mcpServers": {
     "go-mcp-server": {
@@ -13,10 +23,18 @@ Setup:
     }
   }
 }
-   - restart Cursor
-   - in Cursor Settings (CTRL+SHIFT+J) -> Tools & Integration
-         - make sure the 'go-mcp-server' is listed, it should have 2 tools available
-   - ask Cursor to 'use the execute_sql tool' to query the database, for example ask it how many tables are in the database
+```
 
-Tool for Debugging:
-https://modelcontextprotocol.io/docs/tools/inspector
+Restart Cursor and the server will be available with SQL execution tools.
+
+## Usage
+
+Ask Cursor to use the `execute_sql` tool to query your database:
+- "How many tables are in the database?"
+- "Show me the top 10 rows from the users table"
+
+## Development
+
+```bash
+go build -o mcp-server.exe
+```
