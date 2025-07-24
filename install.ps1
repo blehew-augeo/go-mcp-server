@@ -1,0 +1,63 @@
+param(
+    [string]$GitHubRepo = "Workplace-Engagement/go-mcp-server",  
+    [string]$BinaryName = "mcp-server.exe"
+)
+
+$InstallDir = "$env:APPDATA\Local\Programs\mcp-server"
+$BinaryPath = Join-Path $InstallDir $BinaryName
+
+Write-Host "MCP Server Installer" -ForegroundColor Green
+Write-Host "===================="
+Write-Host "Installing to: $InstallDir"
+Write-Host ""
+
+$DownloadUrl = "https://github.com/$GitHubRepo/releases/latest/download/$BinaryName"
+Write-Host "Download URL: $DownloadUrl"
+Write-Host ""
+
+try {
+    if (!(Test-Path $InstallDir)) {
+        Write-Host "Creating install directory..." -ForegroundColor Yellow
+        New-Item -ItemType Directory -Force -Path $InstallDir | Out-Null
+    }
+} catch {
+    Write-Error "Failed to create install directory: $_"
+    exit 1
+}
+
+try {
+    Write-Host "Downloading latest release..." -ForegroundColor Yellow
+    $ProgressPreference = 'SilentlyContinue'  
+    Invoke-WebRequest -Uri $DownloadUrl -OutFile $BinaryPath
+    $ProgressPreference = 'Continue'
+    Write-Host "Download completed!" -ForegroundColor Green
+} catch {
+    Write-Error "Failed to download binary: $_"
+    Write-Host "Please check that the release exists at: $DownloadUrl" -ForegroundColor Red
+    exit 1
+}
+
+if (!(Test-Path $BinaryPath)) {
+    Write-Error "Binary not found after download: $BinaryPath"
+    exit 1
+}
+
+$CurrentPath = [Environment]::GetEnvironmentVariable("PATH", "User")
+if ($CurrentPath -notlike "*$InstallDir*") {
+    try {
+        Write-Host "Adding to PATH..." -ForegroundColor Yellow
+        $NewPath = "$CurrentPath;$InstallDir"
+        [Environment]::SetEnvironmentVariable("PATH", $NewPath, "User")
+        Write-Host "Added to PATH successfully!" -ForegroundColor Green
+        Write-Host "You may need to restart your terminal for PATH changes to take effect." -ForegroundColor Yellow
+    } catch {
+        Write-Warning "Failed to add to PATH: $_"
+        Write-Host "You can manually add this directory to your PATH: $InstallDir" -ForegroundColor Yellow
+    }
+} else {
+    Write-Host "Directory already in PATH" -ForegroundColor Green
+}
+
+Write-Host ""
+Write-Host "Installation Summary:" -ForegroundColor Green
+Write-Host "- Binary installed to: $BinaryPath"
