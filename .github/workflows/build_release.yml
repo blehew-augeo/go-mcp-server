@@ -37,11 +37,9 @@ jobs:
           ## Changes in ${{ github.ref_name }}
           
           ### Installation
-          ```powershell
-          iex (iwr -useb https://raw.githubusercontent.com/${{ github.repository }}/main/install.ps1).Content
-          ```
           
-          Or download `mcp-server.exe` directly from the assets below.
+          1. Download `mcp-server.exe` from the assets below
+          2. Follow the setup instructions in the [README](https://github.com/${{ github.repository }}#installation)
         draft: false
         prerelease: false
 
