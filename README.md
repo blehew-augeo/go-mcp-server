@@ -1,7 +1,6 @@
 Setup:
    - open Powershell
-   - run this:
-      iex (iwr -useb https://raw.githubusercontent.com/Workplace-Engagement/go-mcp-server/main/install.ps1).Content
+   - run install script
    - create/edit mcp.json at C:\Users\<username>\.cursor\mcp.json
    - add the mcp server to the configuration:
 {

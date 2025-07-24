@@ -127,7 +127,7 @@ func main() {
 	db := initDatabase()
 	defer closeDB(db)
 
-	s := server.NewMCPServer("Encore MCP Server", "1.0.0")
+	s := server.NewMCPServer("MCP Server", "1.0.0")
 
 	executeSQLTool := mcp.NewTool(
 		"execute_sql",

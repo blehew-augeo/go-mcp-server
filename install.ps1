@@ -1,15 +1,43 @@
 param(
-    [string]$GitHubRepo = "Workplace-Engagement/go-mcp-server",  
+    [string]$GitHubRepo = "",  
     [string]$BinaryName = "mcp-server.exe"
 )
 
-$InstallDir = "$env:APPDATA\Local\Programs\mcp-server"
+$InstallDir = "$env:LOCALAPPDATA\Programs\mcp-server"
 $BinaryPath = Join-Path $InstallDir $BinaryName
 
 Write-Host "MCP Server Installer" -ForegroundColor Green
 Write-Host "===================="
 Write-Host "Installing to: $InstallDir"
 Write-Host ""
+
+# Auto-detect repo if not specified
+if ([string]::IsNullOrEmpty($GitHubRepo)) {
+    # Try to detect from git remote
+    try {
+        $remoteUrl = & git config --get remote.origin.url 2>$null
+        if ($remoteUrl) {
+            # Extract owner/repo from various URL formats
+            if ($remoteUrl -match "github.com[:/]([^/]+)/([^/\.]+)") {
+                $owner = $Matches[1]
+                $repo = $Matches[2] -replace '\.git$', ''
+                $GitHubRepo = "$owner/$repo"
+                Write-Host "Detected repository: $GitHubRepo" -ForegroundColor Cyan
+            }
+        }
+    } catch {
+        # Silently fail if git detection doesn't work
+    }
+    
+    # If still empty, prompt the user
+    if ([string]::IsNullOrEmpty($GitHubRepo)) {
+        $GitHubRepo = Read-Host "Could not auto-detect repository. Please enter the GitHub repository (e.g., 'owner/repo')"
+        if ([string]::IsNullOrEmpty($GitHubRepo)) {
+            Write-Error "Repository information is required. Please try again with -GitHubRepo parameter."
+            exit 1
+        }
+    }
+}
 
 $DownloadUrl = "https://github.com/$GitHubRepo/releases/latest/download/$BinaryName"
 Write-Host "Download URL: $DownloadUrl"
@@ -61,3 +89,4 @@ if ($CurrentPath -notlike "*$InstallDir*") {
 Write-Host ""
 Write-Host "Installation Summary:" -ForegroundColor Green
 Write-Host "- Binary installed to: $BinaryPath"
+Write-Host "- Repository: $GitHubRepo"
