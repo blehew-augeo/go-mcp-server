@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/mark3labs/mcp-go/mcp"
@@ -13,46 +14,92 @@ import (
 	_ "github.com/denisenkom/go-mssqldb"
 )
 
-func initDatabase() *sql.DB {
-	connStr := os.Getenv("MSSQL_CONNECTION_STRING")
-	db, err := sql.Open("sqlserver", connStr)
+type DatabaseManager struct {
+	mu             sync.RWMutex
+	db             *sql.DB
+	lastConnString string
+}
+
+func NewDatabaseManager() *DatabaseManager {
+	return &DatabaseManager{}
+}
+
+func (dm *DatabaseManager) getConnection() (*sql.DB, error) {
+	dm.mu.RLock()
+	currentConnString := os.Getenv("MSSQL_CONNECTION_STRING")
+	
+	if dm.db != nil && dm.lastConnString == currentConnString {
+		db := dm.db
+		dm.mu.RUnlock()
+		return db, nil
+	}
+	dm.mu.RUnlock()
+
+	dm.mu.Lock()
+	defer dm.mu.Unlock()
+
+	if dm.db != nil && dm.lastConnString == currentConnString {
+		return dm.db, nil
+	}
+
+	if dm.db != nil {
+		dm.db.Close()
+		dm.db = nil
+	}
+
+	if currentConnString == "" {
+		dm.lastConnString = ""
+		return nil, fmt.Errorf("MSSQL_CONNECTION_STRING environment variable is not set")
+	}
+
+	db, err := sql.Open("sqlserver", currentConnString)
 	if err != nil {
-		fmt.Println("Failed to open database: %w", err)
-        return nil
+		dm.lastConnString = currentConnString
+		return nil, fmt.Errorf("failed to open database connection: %v", err)
 	}
-	
-	if err := db.Ping(); err != nil {
-		fmt.Println("Failed to connect to database: %w", err)
-        db.Close()
-        return nil
-	}
-	
-	return db
-}
 
-func closeDB(db *sql.DB) {
-	if db != nil {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	
+	if err := db.PingContext(ctx); err != nil {
 		db.Close()
+		dm.lastConnString = currentConnString
+		return nil, fmt.Errorf("failed to connect to database: %v", err)
+	}
+
+	dm.db = db
+	dm.lastConnString = currentConnString
+	return db, nil
+}
+
+func (dm *DatabaseManager) Close() {
+	dm.mu.Lock()
+	defer dm.mu.Unlock()
+	
+	if dm.db != nil {
+		dm.db.Close()
+		dm.db = nil
 	}
 }
 
-func executeQuery(db *sql.DB, query string) (string, error) {
-	if db == nil {
-		return "", fmt.Errorf("database connection not available")
+func executeQuery(dm *DatabaseManager, query string) (string, error) {
+	db, err := dm.getConnection()
+	if err != nil {
+		return "", fmt.Errorf("database connection unavailable: %v", err)
 	}
-	
+
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
 	rows, err := db.QueryContext(ctx, query)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("query execution failed: %v", err)
 	}
 	defer rows.Close()
 
 	columns, err := rows.Columns()
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to get column information: %v", err)
 	}
 
 	var output strings.Builder
@@ -72,7 +119,7 @@ func executeQuery(db *sql.DB, query string) (string, error) {
 		}
 
 		if err := rows.Scan(valuePtrs...); err != nil {
-			return "", err
+			return "", fmt.Errorf("failed to scan row: %v", err)
 		}
 
 		var rowValues []string
@@ -92,9 +139,13 @@ func executeQuery(db *sql.DB, query string) (string, error) {
 		}
 		allRows = append(allRows, rowValues)
 	}
+
+	if err := rows.Err(); err != nil {
+		return "", fmt.Errorf("error during row iteration: %v", err)
+	}
 	
 	if len(allRows) == 0 {
-		return "No data found", nil
+		return "Query executed successfully. No rows returned.", nil
 	}
 	
 	for i, col := range columns {
@@ -119,15 +170,14 @@ func executeQuery(db *sql.DB, query string) (string, error) {
 		output.WriteString("\n")
 	}
 
-	return output.String(), rows.Err()
+	return output.String(), nil
 }
 
-
 func main() {
-	db := initDatabase()
-	defer closeDB(db)
+	dm := NewDatabaseManager()
+	defer dm.Close()
 
-	s := server.NewMCPServer("MCP Server", "1.0.0")
+	s := server.NewMCPServer("SQL Server MCP", "1.0.0")
 
 	executeSQLTool := mcp.NewTool(
 		"execute_sql",
@@ -138,19 +188,19 @@ func main() {
 	s.AddTool(executeSQLTool, func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		query, err := request.RequireString("query")
 		if err != nil {
-			return mcp.NewToolResultError("query parameter is required"), nil
+			return mcp.NewToolResultError("Missing required 'query' parameter"), nil
 		}
 
-		result, err := executeQuery(db, query)
+		result, err := executeQuery(dm, query)
 		if err != nil {
-			return mcp.NewToolResultError(fmt.Sprintf("Failed to execute query: %v", err)), nil
+			return mcp.NewToolResultText(fmt.Sprintf("Error: %v", err)), nil
 		}
 
 		return mcp.NewToolResultText(result), nil
 	})
 
-	
 	if err := server.ServeStdio(s); err != nil {
+		fmt.Fprintf(os.Stderr, "Server error: %v\n", err)
 		os.Exit(1)
 	}
 } 
