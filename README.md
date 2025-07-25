@@ -24,12 +24,13 @@ A Model Context Protocol (MCP) server for executing SQL queries against Microsof
      [Environment]::SetEnvironmentVariable("PATH", $newPath, "User")
      ```
    - Restart your terminal
+1. Download the latest `mcp-server.exe` from the [releases page](https://github.com/blehew-augeo/go-mcp-server/releases/latest)
+2. Place `mcp-server.exe` anywhere you like (e.g., `C:\tools\mcp-server.exe` or `C:\Users\YourName\Desktop\mcp-server.exe`)
 
 ## Configuration
 
 Add to your Cursor MCP configuration at `C:\Users\<username>\.cursor\mcp.json`:
 
-**If you chose Option A (no PATH):**
 ```json
 {
   "mcpServers": {
@@ -43,19 +44,7 @@ Add to your Cursor MCP configuration at `C:\Users\<username>\.cursor\mcp.json`:
 }
 ```
 
-**If you chose Option B (added to PATH):**
-```json
-{
-  "mcpServers": {
-    "go-mcp-server": {
-      "command": "mcp-server.exe",
-      "env": {
-        "MSSQL_CONNECTION_STRING": "server=localhost\\SQLEXPRESS;database=YourDatabase;trusted_connection=true;encrypt=false;trustservercertificate=true;"
-      }
-    }
-  }
-}
-```
+Replace `C:\\path\\to\\your\\mcp-server.exe` with the actual path where you saved the file.
 
 Restart Cursor and the server will be available with SQL execution tools.
 
