@@ -1,4 +1,4 @@
-# go-mcp-server
+# mssql-mcp-server
 
 A Model Context Protocol (MCP) server for executing SQL queries against Microsoft SQL Server databases.
 
@@ -6,7 +6,7 @@ A Model Context Protocol (MCP) server for executing SQL queries against Microsof
 
 ## Installation
 
-1. Download the latest `mcp-server.exe` from the [releases page](https://github.com/blehew-augeo/go-mcp-server/releases/latest)
+1. Download the latest `mcp-server.exe` from the [releases page](https://github.com/blehew-augeo/mssql-mcp-server/releases/latest)
 
 2. **Option A: Simple (no PATH setup)**
    - Place `mcp-server.exe` anywhere you like (e.g., `C:\tools\mcp-server.exe`)
