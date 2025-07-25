@@ -6,24 +6,6 @@ A Model Context Protocol (MCP) server for executing SQL queries against Microsof
 
 ## Installation
 
-1. Download the latest `mcp-server.exe` from the [releases page](https://github.com/blehew-augeo/mssql-mcp-server/releases/latest)
-
-2. **Option A: Simple (no PATH setup)**
-   - Place `mcp-server.exe` anywhere you like (e.g., `C:\tools\mcp-server.exe`)
-
-3. **Option B: Add to PATH (recommended)**
-   - Create a directory and move the executable:
-     ```powershell
-     New-Item -ItemType Directory -Force -Path "$env:LOCALAPPDATA\Programs\mcp-server"
-     Move-Item "mcp-server.exe" "$env:LOCALAPPDATA\Programs\mcp-server\mcp-server.exe"
-     ```
-   - Add to your PATH:
-     ```powershell
-     $currentPath = [Environment]::GetEnvironmentVariable("PATH", "User")
-     $newPath = "$currentPath;$env:LOCALAPPDATA\Programs\mcp-server"
-     [Environment]::SetEnvironmentVariable("PATH", $newPath, "User")
-     ```
-   - Restart your terminal
 1. Download the latest `mcp-server.exe` from the [releases page](https://github.com/blehew-augeo/go-mcp-server/releases/latest)
 2. Place `mcp-server.exe` anywhere you like (e.g., `C:\tools\mcp-server.exe` or `C:\Users\YourName\Desktop\mcp-server.exe`)
 
