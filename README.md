@@ -2,6 +2,8 @@
 
 A Model Context Protocol (MCP) server for executing SQL queries against Microsoft SQL Server databases.
 
+> ⚠️ **Security Warning**: This tool can execute any SQL query you provide. Use with caution and ensure proper database permissions.
+
 ## Installation
 
 1. Download the latest `mcp-server.exe` from the [releases page](https://github.com/blehew-augeo/go-mcp-server/releases/latest)
@@ -34,7 +36,7 @@ Add to your Cursor MCP configuration at `C:\Users\<username>\.cursor\mcp.json`:
     "go-mcp-server": {
       "command": "C:\\path\\to\\your\\mcp-server.exe",
       "env": {
-        "MSSQL_CONNECTION_STRING": "your-connection-string-here"
+        "MSSQL_CONNECTION_STRING": "server=localhost\\SQLEXPRESS;database=YourDatabase;trusted_connection=true;encrypt=false;trustservercertificate=true;"
       }
     }
   }
@@ -48,7 +50,7 @@ Add to your Cursor MCP configuration at `C:\Users\<username>\.cursor\mcp.json`:
     "go-mcp-server": {
       "command": "mcp-server.exe",
       "env": {
-        "MSSQL_CONNECTION_STRING": "your-connection-string-here"
+        "MSSQL_CONNECTION_STRING": "server=localhost\\SQLEXPRESS;database=YourDatabase;trusted_connection=true;encrypt=false;trustservercertificate=true;"
       }
     }
   }
