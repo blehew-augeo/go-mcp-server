@@ -25,6 +25,10 @@ Add to your Cursor MCP configuration at `C:\Users\<username>\.cursor\mcp.json`:
   }
 }
 ```
+Update the connection to replace the server and the database with the one you're trying to connect to.
+Windows Authentication SHOULD work with it, but if not you can add a User ID/Password like this:
+
+`server={SOME SERVER};database={SOME DATABASE};User ID={USER NAME};Password={PASSWORD};encrypt=false;trustservercertificate=true;Connection Timeout=180;MultipleActiveResultSets=True`
 
 Replace `C:\\path\\to\\your\\mcp-server.exe` with the actual path where you saved the file.
 
